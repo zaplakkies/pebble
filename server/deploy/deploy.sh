@@ -23,6 +23,9 @@ git archive --format=tar HEAD server | ssh "$HOST" "cat > /tmp/pebble-$REV.tar"
 
 ssh "$HOST" "sudo bash -s" <<EOF
 set -euo pipefail
+if ! python3 -c 'import ensurepip' 2>/dev/null || ! command -v curl >/dev/null; then
+    DEBIAN_FRONTEND=noninteractive apt-get install -y -q python3-venv curl >/dev/null
+fi
 id pebble >/dev/null 2>&1 || useradd --system --create-home --home-dir $APP --shell /usr/sbin/nologin pebble
 mkdir -p $APP/server/instance
 
@@ -40,7 +43,10 @@ fi
 chown -R pebble:pebble $APP
 
 cd $APP/server
-[ -d venv ] || sudo -u pebble python3 -m venv venv
+if [ ! -x venv/bin/pip ]; then
+    rm -rf venv
+    sudo -u pebble python3 -m venv venv
+fi
 sudo -u pebble venv/bin/pip install -q --disable-pip-version-check -r requirements.txt
 sudo -u pebble venv/bin/flask db upgrade
 
