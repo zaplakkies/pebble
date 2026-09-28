@@ -1,0 +1,24 @@
+{% extends "manage/layout.html" %}
+{% import "manage/_macros.html" as m with context %}
+{% block content %}
+<p class="crumbs"><a href="{{ url_for('manage.kids') }}">Kids</a> /</p>
+<h1 class="page-title">{{ kid.name }}</h1>
+<section class="card">
+  <form method="post" class="form-grid">{{ m.csrf() }}
+    <label>Name <input name="name" required maxlength="60" value="{{ kid.name }}"></label>
+    {{ m.limit_inputs(kid) }}
+    <div class="actions">
+      <button class="btn">Save</button>
+      <a class="btn secondary" href="{{ url_for('manage.kids') }}">Cancel</a>
+    </div>
+  </form>
+</section>
+<section class="card danger-zone">
+  <h3>Delete</h3>
+  <p class="muted">Only possible once the kid has no devices, adjustments or rules. The deletion is recorded in the audit log.</p>
+  <form method="post" action="{{ url_for('manage.kid_delete', kid_id=kid.id) }}"
+        onsubmit="return confirm('Delete {{ kid.name }}?')">{{ m.csrf() }}
+    <button class="btn danger">Delete {{ kid.name }}</button>
+  </form>
+</section>
+{% endblock %}

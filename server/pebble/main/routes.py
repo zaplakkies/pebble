@@ -3,7 +3,7 @@ from datetime import date, timedelta
 from flask import Blueprint, abort, render_template, request
 
 from pebble import db
-from pebble.models import Kid
+from pebble.models import AuditLog, Kid
 from pebble.timeutil import local_today
 from pebble.usage import history, summarize_day, summarize_today
 
@@ -14,7 +14,9 @@ main = Blueprint('main', __name__)
 def index():
     kids = Kid.query.order_by(Kid.name).all()
     cards = [(kid, summarize_today(kid)) for kid in kids]
-    return render_template('main/index.html', cards=cards, today=local_today())
+    last_change = AuditLog.query.order_by(AuditLog.at.desc()).first()
+    return render_template('main/index.html', cards=cards, today=local_today(),
+                           last_change=last_change)
 
 
 @main.route('/kid/<int:kid_id>')

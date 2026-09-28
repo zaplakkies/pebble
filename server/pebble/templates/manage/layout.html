@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block head %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+{% block title %}Manage · Pebble{% endblock %}
+{% block brand %}<a class="brand" href="{{ url_for('manage.overview') }}"><span class="dot manage"></span>Pebble <span class="tag">manage</span></a>{% endblock %}
+{% block topnav %}
+{% set here = request.endpoint %}
+<nav class="mainnav">
+  <a href="{{ url_for('manage.overview') }}" class="{{ 'on' if here == 'manage.overview' }}">Overview</a>
+  <a href="{{ url_for('manage.kids') }}" class="{{ 'on' if here.startswith('manage.kid') }}">Kids</a>
+  <a href="{{ url_for('manage.devices') }}" class="{{ 'on' if here.startswith('manage.device') }}">Devices</a>
+  <a href="{{ url_for('manage.rules') }}" class="{{ 'on' if here.startswith('manage.rule') }}">Exclusions</a>
+  <a href="{{ url_for('manage.alerts') }}" class="{{ 'on' if here.startswith('manage.alert') }}">Alerts{% if open_alerts %} <span class="count">{{ open_alerts }}</span>{% endif %}</a>
+  <a href="{{ url_for('manage.audit') }}" class="{{ 'on' if here == 'manage.audit' }}">Audit log</a>
+  <a href="{{ url_for('main.index') }}" class="muted">Public view ↗</a>
+</nav>
+{% endblock %}

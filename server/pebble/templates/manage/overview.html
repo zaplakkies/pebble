@@ -1,0 +1,67 @@
+{% extends "manage/layout.html" %}
+{% import "manage/_macros.html" as m with context %}
+{% block content %}
+{% if alerts %}
+<section class="card alert-panel">
+  <div class="section-head">
+    <h3>Open alerts</h3>
+    <form method="post" action="{{ url_for('manage.alerts_ack') }}">{{ m.csrf() }}
+      <button class="btn small secondary">Acknowledge all</button></form>
+  </div>
+  <ul class="alert-list">
+    {% for a in alerts %}
+    <li><span class="tag kind">{{ a.kind|replace('_', ' ') }}</span>
+      <b>{{ a.device.name if a.device else '' }}</b> {{ a.detail }}
+      <span class="muted">· {{ a.created_at|ago }}</span></li>
+    {% endfor %}
+  </ul>
+  {% if open_alerts > alerts|length %}<a href="{{ url_for('manage.alerts') }}">All {{ open_alerts }} open alerts →</a>{% endif %}
+</section>
+{% endif %}
+
+<section class="card">
+  <div class="section-head"><h3>Today</h3><a href="{{ url_for('manage.kids') }}" class="btn small secondary">Manage kids</a></div>
+  {% if cards %}
+  <div class="table-wrap"><table>
+    <thead><tr><th>Kid</th><th>Used</th><th>Limit</th><th>Status</th><th>Not counted</th><th></th></tr></thead>
+    <tbody>
+    {% for kid, s in cards %}
+      <tr>
+        <td><b>{{ kid.name }}</b></td>
+        <td>{{ s.used_s|duration }}</td>
+        <td>{{ s.limit_s|duration if s.limit_s is not none else 'none' }}</td>
+        <td><span class="badge badge-{{ s.status }}">{{ s.status }}</span></td>
+        <td>{{ s.excluded_s|duration }}{% if s.adjust_s %} · adjusted {{ '+' if s.adjust_s > 0 else '−' }}{{ s.adjust_s|abs|duration }}{% endif %}</td>
+        <td class="num"><a href="{{ url_for('manage.kid_day', kid_id=kid.id) }}">Review day →</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+  <p class="muted">No kids yet. <a href="{{ url_for('manage.kids') }}">Add one</a>.</p>
+  {% endif %}
+</section>
+
+<section class="card">
+  <div class="section-head"><h3>Devices</h3><a href="{{ url_for('manage.devices') }}" class="btn small secondary">Manage devices</a></div>
+  {% if devices %}
+  <ul class="device-list">
+    {% for d in devices %}
+    <li>
+      <span class="platform">{{ d.platform }}</span>
+      <a href="{{ url_for('manage.device_edit', device_id=d.id) }}">{{ d.name }}</a>
+      <span class="muted">{{ d.kid.name }}</span>
+      <span class="{{ 'stale' if not d.last_seen or now - d.last_seen > sync_stale_after else 'muted' }}">last sync {{ d.last_seen|ago }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">No devices yet. <a href="{{ url_for('manage.devices') }}">Add one</a> to get a token for the agent.</p>
+  {% endif %}
+</section>
+
+<section class="card">
+  <div class="section-head"><h3>Recent changes</h3><a href="{{ url_for('manage.audit') }}" class="btn small secondary">Full audit log</a></div>
+  {% with entries = changes %}{% include "manage/_audit_rows.html" %}{% endwith %}
+</section>
+{% endblock %}

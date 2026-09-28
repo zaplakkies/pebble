@@ -1,0 +1,27 @@
+{# Expects `entries`. Shared by the overview and the audit log page. #}
+<div class="table-wrap">
+<table>
+  <thead><tr><th>When</th><th>Change</th><th>Details</th><th>From</th></tr></thead>
+  <tbody>
+  {% for e in entries %}
+    <tr>
+      <td class="nowrap">{{ e.at|localtime('%a %d %b %H:%M') }}</td>
+      <td class="nowrap"><span class="tag action-{{ e.action }}">{{ e.action }}</span> {{ e.entity }}{% if e.entity_id %} #{{ e.entity_id }}{% endif %}</td>
+      <td class="what">
+        {% if e.action == 'update' and e.old and e.new %}
+          {% for key, value in e.new.items() %}
+            {% if e.old.get(key) != value %}<div><b>{{ key }}</b>: {{ e.old.get(key)|auditval }} → {{ value|auditval }}</div>
+            {% elif key == 'name' %}<div class="muted">{{ value }}</div>{% endif %}
+          {% endfor %}
+        {% else %}
+          {% for key, value in (e.new or e.old or {}).items() if value is not none and value != '' %}<div><b>{{ key }}</b>: {{ value|auditval }}</div>{% endfor %}
+        {% endif %}
+      </td>
+      <td class="muted small" title="{{ e.user_agent or '' }}">{{ e.ip or '' }}<br>{{ e.user_agent|browser }}</td>
+    </tr>
+  {% else %}
+    <tr><td colspan="4" class="muted">No changes recorded yet.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>

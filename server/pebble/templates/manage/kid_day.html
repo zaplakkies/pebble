@@ -1,0 +1,95 @@
+{% extends "manage/layout.html" %}
+{% import "manage/_macros.html" as m with context %}
+{% block content %}
+{% set day_iso = summary.day.isoformat() %}
+<div class="page-head">
+  <div>
+    <p class="crumbs"><a href="{{ url_for('manage.kids') }}">Kids</a> / {{ kid.name }}</p>
+    <h1>{{ kid.name }} · {% if summary.day == today %}today{% else %}{{ summary.day.strftime('%a %d %b') }}{% endif %}</h1>
+  </div>
+  <nav class="daynav">
+    <a href="{{ url_for('manage.kid_day', kid_id=kid.id, day=prev_day.isoformat()) }}">&larr;</a>
+    <span>{{ summary.day.strftime('%d %b') }}</span>
+    {% if next_day %}<a href="{{ url_for('manage.kid_day', kid_id=kid.id, day=next_day.isoformat()) }}">&rarr;</a>
+    {% else %}<span class="disabled">&rarr;</span>{% endif %}
+  </nav>
+</div>
+
+<section class="stats">
+  <div class="card stat status-{{ summary.status }}"><span class="label">Counted</span>
+    <span class="value">{{ summary.used_s|duration }}</span>
+    {% if summary.limit_s is not none %}<div class="meter"><span style="width: {{ summary.percent }}%"></span></div>{% endif %}</div>
+  <div class="card stat"><span class="label">Limit</span>
+    <span class="value">{{ summary.limit_s|duration if summary.limit_s is not none else 'None' }}</span></div>
+  <div class="card stat"><span class="label">Not counted</span><span class="value">{{ summary.excluded_s|duration }}</span></div>
+  <div class="card stat"><span class="label">Adjustment</span>
+    <span class="value">{% if summary.adjust_s %}{{ '+' if summary.adjust_s > 0 else '−' }}{{ summary.adjust_s|abs|duration }}{% else %}–{% endif %}</span></div>
+</section>
+
+<section class="card">
+  <h3>Adjust time</h3>
+  <p class="muted">Give back time (e.g. an online lesson on the PC) or count extra time (e.g. TV or a console Pebble can't see). Adjustments only affect {{ summary.day.strftime('%a %d %b') }}.</p>
+  <form method="post" action="{{ url_for('manage.kid_adjust', kid_id=kid.id) }}" class="inline-form">{{ m.csrf() }}
+    <input type="hidden" name="day" value="{{ day_iso }}">
+    <select name="direction">
+      <option value="remove">Give back</option>
+      <option value="add">Count extra</option>
+    </select>
+    <input name="minutes" type="number" min="1" max="1440" required placeholder="minutes" class="short">
+    <input name="reason" maxlength="200" placeholder="Reason (e.g. school video call)">
+    <button class="btn">Save</button>
+  </form>
+  {% if minute_adjustments %}
+  <ul class="adj-list">
+    {% for a in minute_adjustments %}
+    <li>
+      <b>{{ 'Gave back' if a.minutes < 0 else 'Counted extra' }} {{ (a.minutes|abs * 60)|duration }}</b>
+      {% if a.reason %}· {{ a.reason }}{% endif %} <span class="muted">· {{ a.created_at|localtime('%H:%M') }}</span>
+      <form method="post" action="{{ url_for('manage.adjustment_delete', adj_id=a.id) }}" class="inline">{{ m.csrf() }}
+        <input type="hidden" name="day" value="{{ day_iso }}"><button class="link">undo</button></form>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</section>
+
+<section class="card">
+  <h3>Sessions</h3>
+  {% if summary.sessions %}
+  <div class="table-wrap"><table>
+    <thead><tr><th>Time</th><th>Device</th><th>App</th><th>What</th><th class="num">Duration</th><th></th></tr></thead>
+    <tbody>
+    {% for v in summary.sessions|reverse %}
+      {% set s = v.session %}
+      {% set adj = session_adjustments.get(s.id) %}
+      <tr class="{{ 'excluded' if v.excluded_reason }}">
+        <td class="nowrap">{{ s.start|localtime }}–{{ s.end|localtime }}</td>
+        <td>{{ s.device.name }}</td>
+        <td title="{{ s.app_id }}">{{ s.display_name }}</td>
+        <td class="what">
+          {% if s.document %}<span class="tag">doc</span> {{ s.document }}
+          {% elif s.url %}<a href="{{ s.url }}" rel="noreferrer" target="_blank">{{ s.title or s.domain }}</a>
+          {% else %}{{ s.title or '' }}{% endif %}
+          {% if v.excluded_reason %}<span class="tag">not counted: {{ v.excluded_reason }}</span>{% endif %}
+        </td>
+        <td class="num">{{ v.seconds|duration }}</td>
+        <td class="num nowrap">
+          {% if adj %}
+            <form method="post" action="{{ url_for('manage.adjustment_delete', adj_id=adj.id) }}" class="inline">{{ m.csrf() }}
+              <input type="hidden" name="day" value="{{ day_iso }}"><button class="link">count again</button></form>
+          {% elif not v.excluded_reason %}
+            <form method="post" action="{{ url_for('manage.session_exclude', session_id=s.id) }}" class="inline">{{ m.csrf() }}
+              <input type="hidden" name="day" value="{{ day_iso }}"><button class="link">don't count</button></form>
+          {% endif %}
+          <a class="link" title="Always exclude this app or site"
+             href="{{ url_for('manage.rules', kid_id=kid.id, **({'domain': s.domain} if s.domain else {'app_id': s.app_id})) }}#new">rule…</a>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+  <p class="muted">Nothing recorded for this day.</p>
+  {% endif %}
+</section>
+{% endblock %}

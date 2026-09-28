@@ -1,0 +1,35 @@
+{% extends "manage/layout.html" %}
+{% import "manage/_macros.html" as m with context %}
+{% block content %}
+<h1 class="page-title">Kids</h1>
+<section class="card">
+  {% if kids %}
+  <div class="table-wrap"><table>
+    <thead><tr><th>Name</th><th>Weekday limit</th><th>Weekend limit</th><th>Devices</th><th></th></tr></thead>
+    <tbody>
+    {% for kid in kids %}
+      <tr>
+        <td><b>{{ kid.name }}</b></td>
+        <td>{{ (kid.weekday_limit_min * 60)|duration if kid.weekday_limit_min is not none else 'none' }}</td>
+        <td>{{ (kid.weekend_limit_min * 60)|duration if kid.weekend_limit_min is not none else 'none' }}</td>
+        <td>{{ kid.devices|selectattr('active')|list|length }}</td>
+        <td class="num">
+          <a href="{{ url_for('manage.kid_day', kid_id=kid.id) }}">Review day</a> ·
+          <a href="{{ url_for('manage.kid_edit', kid_id=kid.id) }}">Edit</a>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}<p class="muted">No kids yet.</p>{% endif %}
+</section>
+
+<section class="card">
+  <h3>Add a kid</h3>
+  <form method="post" class="form-grid">{{ m.csrf() }}
+    <label>Name <input name="name" required maxlength="60"></label>
+    {{ m.limit_inputs() }}
+    <div class="actions"><button class="btn">Add kid</button></div>
+  </form>
+</section>
+{% endblock %}

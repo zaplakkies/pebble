@@ -1,0 +1,29 @@
+{# Import with: {% import "manage/_macros.html" as m with context %} #}
+{% macro csrf() %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endmacro %}
+
+{% macro limit_inputs(kid=None) %}
+<label>Weekday limit <span class="hint">minutes or h:mm, empty = no limit</span>
+  <input name="weekday_limit_min" inputmode="numeric" placeholder="e.g. 120 or 2:00"
+         value="{{ kid.weekday_limit_min if kid and kid.weekday_limit_min is not none else '' }}"></label>
+<label>Weekend limit <span class="hint">Sat &amp; Sun</span>
+  <input name="weekend_limit_min" inputmode="numeric" placeholder="e.g. 180 or 3:00"
+         value="{{ kid.weekend_limit_min if kid and kid.weekend_limit_min is not none else '' }}"></label>
+{% endmacro %}
+
+{% macro rule_fields(kids, v) %}
+<label>Applies to <select name="kid_id">
+  <option value="all">All kids</option>
+  {% for kid in kids %}<option value="{{ kid.id }}" {{ 'selected' if v.get('kid_id')|string == kid.id|string }}>{{ kid.name }}</option>{% endfor %}
+</select></label>
+<label>App <span class="hint">exe or package name, e.g. WINWORD.EXE</span>
+  <input name="app_id" maxlength="200" value="{{ v.get('app_id') or '' }}" placeholder="any app"></label>
+<label>Website <span class="hint">domain, includes subdomains</span>
+  <input name="domain" maxlength="255" value="{{ v.get('domain') or '' }}" placeholder="e.g. classroom.google.com"></label>
+<label>Window title <span class="hint">pattern, * = anything</span>
+  <input name="title_pattern" maxlength="500" value="{{ v.get('title_pattern') or '' }}" placeholder="e.g. *.docx - Word"></label>
+<label>Reason <input name="reason" maxlength="200" value="{{ v.get('reason') or '' }}" placeholder="e.g. Homework"></label>
+<label>Status <select name="active">
+  <option value="1">Active</option>
+  <option value="0" {{ 'selected' if v.get('active')|string in ('0', 'False') }}>Paused</option>
+</select></label>
+{% endmacro %}

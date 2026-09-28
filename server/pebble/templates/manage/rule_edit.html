@@ -1,0 +1,24 @@
+{% extends "manage/layout.html" %}
+{% import "manage/_macros.html" as m with context %}
+{% block content %}
+<p class="crumbs"><a href="{{ url_for('manage.rules') }}">Exclusions</a> /</p>
+<h1 class="page-title">Edit rule</h1>
+<section class="card">
+  <form method="post" class="form-grid">{{ m.csrf() }}
+    {{ m.rule_fields(kids, {'kid_id': rule.kid_id, 'app_id': rule.app_id, 'domain': rule.domain,
+                            'title_pattern': rule.title_pattern, 'reason': rule.reason, 'active': rule.active}) }}
+    <div class="actions">
+      <button class="btn">Save</button>
+      <a class="btn secondary" href="{{ url_for('manage.rules') }}">Cancel</a>
+    </div>
+  </form>
+</section>
+<section class="card danger-zone">
+  <h3>Delete</h3>
+  <p class="muted">Pausing keeps the rule for later. Deleting removes it; either way past days are recalculated.</p>
+  <form method="post" action="{{ url_for('manage.rule_delete', rule_id=rule.id) }}"
+        onsubmit="return confirm('Delete this rule?')">{{ m.csrf() }}
+    <button class="btn danger">Delete rule</button>
+  </form>
+</section>
+{% endblock %}

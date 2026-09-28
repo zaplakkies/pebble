@@ -1,0 +1,43 @@
+{% extends "manage/layout.html" %}
+{% import "manage/_macros.html" as m with context %}
+{% block content %}
+<h1 class="page-title">Devices</h1>
+<section class="card">
+  {% if devices %}
+  <div class="table-wrap"><table>
+    <thead><tr><th>Device</th><th>Kid</th><th>Platform</th><th>Last sync</th><th>Agent</th><th></th></tr></thead>
+    <tbody>
+    {% for d in devices %}
+      <tr class="{{ 'excluded' if not d.active }}">
+        <td><b>{{ d.name }}</b>{% if not d.active %} <span class="tag">revoked</span>{% endif %}</td>
+        <td>{{ d.kid.name }}</td>
+        <td><span class="platform">{{ d.platform }}</span></td>
+        <td>{{ d.last_seen|ago }}</td>
+        <td class="muted">{{ d.agent_version or '–' }}</td>
+        <td class="num"><a href="{{ url_for('manage.device_edit', device_id=d.id) }}">Details</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}<p class="muted">No devices yet.</p>{% endif %}
+</section>
+
+<section class="card">
+  <h3>Add a device</h3>
+  {% if kids %}
+  <p class="muted">You'll get a token to enter in the Pebble agent on that device. It's shown once.</p>
+  <form method="post" class="form-grid">{{ m.csrf() }}
+    <label>Kid <select name="kid_id" required>
+      {% for kid in kids %}<option value="{{ kid.id }}">{{ kid.name }}</option>{% endfor %}
+    </select></label>
+    <label>Device name <input name="name" required maxlength="60" placeholder="e.g. Emma's laptop"></label>
+    <label>Platform <select name="platform" required>
+      <option value="windows">Windows</option><option value="android">Android</option>
+    </select></label>
+    <div class="actions"><button class="btn">Add device</button></div>
+  </form>
+  {% else %}
+  <p class="muted"><a href="{{ url_for('manage.kids') }}">Add a kid</a> first.</p>
+  {% endif %}
+</section>
+{% endblock %}

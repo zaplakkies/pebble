@@ -1,0 +1,15 @@
+{% extends "manage/layout.html" %}
+{% block content %}
+<h1 class="page-title">Audit log</h1>
+<p class="muted lead">Every change made on these pages or with the <code>flask</code> commands on the server. Entries can't be edited or deleted from Pebble.</p>
+<section class="card">
+  {% with entries = page.items %}{% include "manage/_audit_rows.html" %}{% endwith %}
+  {% if page.pages > 1 %}
+  <nav class="pager">
+    {% if page.has_prev %}<a href="{{ url_for('manage.audit', page=page.prev_num) }}">&larr; Newer</a>{% endif %}
+    <span class="muted">Page {{ page.page }} of {{ page.pages }}</span>
+    {% if page.has_next %}<a href="{{ url_for('manage.audit', page=page.next_num) }}">Older &rarr;</a>{% endif %}
+  </nav>
+  {% endif %}
+</section>
+{% endblock %}

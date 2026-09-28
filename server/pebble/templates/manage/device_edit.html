@@ -1,0 +1,57 @@
+{% extends "manage/layout.html" %}
+{% import "manage/_macros.html" as m with context %}
+{% block content %}
+<p class="crumbs"><a href="{{ url_for('manage.devices') }}">Devices</a> /</p>
+<h1 class="page-title">{{ device.name }}{% if not device.active %} <span class="tag">revoked</span>{% endif %}</h1>
+
+<div class="two-col">
+<section class="card">
+  <h3>Details</h3>
+  <form method="post" class="form-grid one">{{ m.csrf() }}
+    <label>Name <input name="name" required maxlength="60" value="{{ device.name }}"></label>
+    <label>Kid <select name="kid_id">
+      {% for kid in kids %}<option value="{{ kid.id }}" {{ 'selected' if kid.id == device.kid_id }}>{{ kid.name }}</option>{% endfor %}
+    </select></label>
+    <div class="actions"><button class="btn">Save</button></div>
+  </form>
+</section>
+
+<section class="card">
+  <h3>Agent</h3>
+  <dl class="facts">
+    <dt>Platform</dt><dd>{{ device.platform }}</dd>
+    <dt>Last sync</dt><dd>{{ device.last_seen|localtime('%a %d %b %H:%M') or 'never' }} <span class="muted">({{ device.last_seen|ago }})</span></dd>
+    <dt>Agent version</dt><dd>{{ device.agent_version or '–' }}</dd>
+    <dt>Records received</dt><dd>{{ device.last_seq }}</dd>
+    <dt>Install ID</dt><dd class="muted small">{{ device.install_id or '–' }}</dd>
+  </dl>
+  <div class="actions">
+    <form method="post" action="{{ url_for('manage.device_token', device_id=device.id) }}" class="inline"
+          onsubmit="return confirm('The current token stops working and you will need to enter the new one in the agent. Continue?')">{{ m.csrf() }}
+      <button class="btn secondary">New token</button></form>
+    <form method="post" action="{{ url_for('manage.device_active', device_id=device.id) }}" class="inline">{{ m.csrf() }}
+      {% if device.active %}
+        <input type="hidden" name="active" value="0"><button class="btn danger">Revoke</button>
+      {% else %}
+        <input type="hidden" name="active" value="1"><button class="btn secondary">Re-enable</button>
+      {% endif %}
+    </form>
+  </div>
+</section>
+</div>
+
+<section class="card">
+  <h3>Recent agent events</h3>
+  {% if events %}
+  <div class="table-wrap"><table>
+    <thead><tr><th>When</th><th>Event</th><th>Details</th></tr></thead>
+    <tbody>
+    {% for e in events %}
+      <tr><td class="nowrap">{{ e.at|localtime('%a %d %b %H:%M') }}</td><td>{{ e.type|replace('_', ' ') }}</td>
+        <td class="muted">{% for k, v in (e.details or {}).items() %}{{ k }}: {{ v }}{% if not loop.last %}, {% endif %}{% endfor %}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}<p class="muted">No events yet.</p>{% endif %}
+</section>
+{% endblock %}

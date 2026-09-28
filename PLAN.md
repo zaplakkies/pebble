@@ -95,7 +95,7 @@ Pebble can't prevent tampering, but it can make it visible. The server raises an
 
 1. ✅ **Contract:** `docs/api.md`.
 2. ✅ **Server core:** models, ingestion API with tamper checks (sequence gaps, hash chain, reinstall, clock skew/jumps, unclean stops, permission loss), daily computation with exclusions and adjustments, public dashboard, `tools/fake_agent.py` for test data, and CLI commands for kids, devices and alerts. Still to do: "silent while powered on" detection, which needs the Windows agent's boot/shutdown events.
-3. **Server management:** hidden page, rules, adjustments, audit log, alerts.
+3. ✅ **Server management:** hidden pages at `/<MANAGE_PATH>/` for kids and limits, devices (tokens, revoke, new token), exclusion rules (with the most-used apps and sites to pick from), per-day adjustments (give back or count extra minutes, don't count a session), alerts inbox, and the append-only audit log. Forms are protected against cross-site requests (CSRF), and the public dashboard shows when settings last changed.
 4. **Windows agent:** sampling, sessions, queue and sync, tray icon, then URL capture, then tamper events, then packaging.
 5. **Android agent:** usage events, backfill, sync, widget, then tamper events, then the optional accessibility URL capture.
 6. **Polish:** weekly summaries, rewards / bonus minutes, charts.

@@ -1,0 +1,40 @@
+{% extends "manage/layout.html" %}
+{% import "manage/_macros.html" as m with context %}
+{% block content %}
+<div class="page-head">
+  <h1>Alerts</h1>
+  <nav class="tabs">
+    <a href="{{ url_for('manage.alerts') }}" class="{{ 'on' if not show_all }}">Open</a>
+    <a href="{{ url_for('manage.alerts', show='all') }}" class="{{ 'on' if show_all }}">All</a>
+  </nav>
+</div>
+<p class="muted lead">Signs that tracking may have been interfered with. Acknowledging an alert is itself recorded in the audit log.</p>
+<section class="card">
+  {% if alerts %}
+  <form method="post" action="{{ url_for('manage.alerts_ack') }}">{{ m.csrf() }}
+  <div class="table-wrap"><table>
+    <thead><tr><th></th><th>When</th><th>Device</th><th>Alert</th><th>Details</th></tr></thead>
+    <tbody>
+    {% for a in alerts %}
+      <tr class="{{ 'excluded' if a.acknowledged }}">
+        <td>{% if not a.acknowledged %}<input type="checkbox" name="alert_id" value="{{ a.id }}">{% endif %}</td>
+        <td class="nowrap">{{ a.created_at|localtime('%a %d %b %H:%M') }}</td>
+        <td>{{ a.device.name if a.device else '–' }}</td>
+        <td class="nowrap"><span class="tag kind">{{ a.kind|replace('_', ' ') }}</span></td>
+        <td class="what">{{ a.detail }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% if not show_all %}
+  <div class="actions">
+    <button class="btn secondary">Acknowledge selected</button>
+    <span class="muted small">Nothing selected = acknowledge all open alerts</span>
+  </div>
+  {% endif %}
+  </form>
+  {% else %}
+  <p class="muted">{{ 'No alerts yet.' if show_all else 'No open alerts.' }}</p>
+  {% endif %}
+</section>
+{% endblock %}

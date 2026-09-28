@@ -1,0 +1,63 @@
+{% extends "manage/layout.html" %}
+{% import "manage/_macros.html" as m with context %}
+{% block content %}
+<h1 class="page-title">Exclusions</h1>
+<p class="muted lead">Time matching an active rule doesn't count towards the limit. Rules are applied when totals are shown,
+  so adding, pausing or deleting one also recalculates past days. Everything stays visible in the timeline.</p>
+
+<section class="card">
+  {% if rules %}
+  <div class="table-wrap"><table>
+    <thead><tr><th>Applies to</th><th>Matches</th><th>Reason</th><th class="num">Last 7 days</th><th></th></tr></thead>
+    <tbody>
+    {% for r in rules %}
+      <tr class="{{ 'excluded' if not r.active }}">
+        <td>{{ r.kid.name if r.kid else 'All kids' }}</td>
+        <td>
+          {% if r.app_id %}<div>app <code>{{ r.app_id }}</code></div>{% endif %}
+          {% if r.domain %}<div>site <code>{{ r.domain }}</code></div>{% endif %}
+          {% if r.title_pattern %}<div>title <code>{{ r.title_pattern }}</code></div>{% endif %}
+        </td>
+        <td>{{ r.reason or '' }}{% if not r.active %} <span class="tag">paused</span>{% endif %}</td>
+        <td class="num">{{ matched.get(r.id, 0)|duration }}</td>
+        <td class="num"><a href="{{ url_for('manage.rule_edit', rule_id=r.id) }}">Edit</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}<p class="muted">No rules yet: all screen time counts.</p>{% endif %}
+</section>
+
+<section class="card" id="new">
+  <h3>Add a rule</h3>
+  <p class="muted">Fill in one or more fields; all filled-in fields must match.</p>
+  <form method="post" class="form-grid">{{ m.csrf() }}
+    {{ m.rule_fields(kids, prefill) }}
+    <div class="actions"><button class="btn">Add rule</button></div>
+  </form>
+</section>
+
+{% if top_apps or top_domains %}
+<div class="two-col">
+  <section class="card">
+    <h3>Most used apps, last 7 days</h3>
+    <ul class="bars">
+      {% for app_id, secs in top_apps %}
+      <li><div class="row"><span class="name" title="{{ app_id }}">{{ app_names[app_id] }}</span>
+        <span>{{ secs|duration }} · <a href="{{ url_for('manage.rules', app_id=app_id, reason=app_names[app_id]) }}#new">exclude…</a></span></div></li>
+      {% endfor %}
+    </ul>
+  </section>
+  <section class="card">
+    <h3>Most used websites, last 7 days</h3>
+    <ul class="bars">
+      {% for domain, secs in top_domains %}
+      <li><div class="row"><span class="name">{{ domain }}</span>
+        <span>{{ secs|duration }} · <a href="{{ url_for('manage.rules', domain=domain) }}#new">exclude…</a></span></div></li>
+      {% else %}<li class="muted">No websites recorded.</li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
+{% endif %}
+{% endblock %}

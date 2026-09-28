@@ -28,9 +28,13 @@ venv/bin/python -m pytest
 After changing `pebble/models.py`: `venv/bin/flask db migrate -m "what changed"`, check the
 generated file in `migrations/versions/`, then `venv/bin/flask db upgrade`.
 
-## Management commands
+## Management
 
-These stand in for the hidden management page until phase 3.
+Day-to-day management happens on the hidden pages at `/<MANAGE_PATH>/`, set in `.env`.
+The path is the only protection, so keep it private. Every change made there is
+written to the audit log along with the IP address and browser that made it.
+
+The same basics are also available as commands on the server:
 
 | Command | |
 |---|---|

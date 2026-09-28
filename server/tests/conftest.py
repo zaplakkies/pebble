@@ -13,6 +13,7 @@ class TestConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite://'
     TIMEZONE = 'Africa/Johannesburg'
+    MANAGE_PATH = 'secret-manage'
 
 
 @pytest.fixture

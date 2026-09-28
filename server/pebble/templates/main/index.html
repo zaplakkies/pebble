@@ -40,4 +40,7 @@
   </a>
   {% endfor %}
 </div>
+{% if last_change %}
+<p class="muted small footer-note">Settings last changed {{ last_change.at|localtime('%a %d %b at %H:%M') }}.</p>
+{% endif %}
 {% endblock %}
