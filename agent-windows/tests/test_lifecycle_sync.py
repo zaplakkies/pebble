@@ -6,7 +6,7 @@ import sys
 import pytest
 
 from pebble_agent.lifecycle import OsEvent, record_os_events, record_start, slept_seconds
-from pebble_agent.sync import Syncer, today_status
+from pebble_agent.sync import Syncer, http_json, pair, today_status
 from pebble_agent.tracker import Tracker, iso
 
 H = 3600
@@ -182,3 +182,22 @@ def test_agent_records_are_accepted_by_real_server(live_server, store, config, p
     today = store.get('today')
     assert today['used_s'] == 15 * 60
     assert today_status(store)['estimate'] is False
+
+
+def test_pairing_code_gets_a_working_token(live_server, store):
+    app, url = live_server
+    with app.app_context():
+        from pebble import db
+        from pebble.models import Device
+        device = Device.query.one()
+        code = device.new_pair_code()
+        db.session.commit()
+    token = pair(url, f'{code[:3]} {code[3:]}')
+    assert http_json('GET', f'{url}/api/v1/status', token, store.install_id)['today']
+    with pytest.raises(SystemExit, match='does not recognise that pairing code'):
+        pair(url, code)
+
+
+def test_pairing_code_must_have_six_digits():
+    with pytest.raises(SystemExit, match='6 digits'):
+        pair('http://pebble.test', '12345', request=None)

@@ -265,11 +265,15 @@ def adjustment_delete(adj_id):
 
 # ---------------------------------------------------------------- devices
 
-def _show_token(device, token, message):
-    record_audit('update' if message == 'regenerated' else 'create', 'device', device.id,
+def _show_setup(device, token, message):
+    """Issue a pairing code and show how to set up the device. token is None for a code only."""
+    code = device.new_pair_code()
+    record_audit('create' if message == 'issued' else 'update', 'device', device.id,
                  new={**snapshot(device, DEVICE_FIELDS), 'token': message})
     db.session.commit()
     return render_template('manage/device_token.html', device=device, token=token,
+                           code=f'{code[:3]} {code[3:]}',
+                           expires=to_local(device.pair_expires),
                            server_url=request.host_url.rstrip('/'))
 
 
@@ -291,7 +295,7 @@ def devices():
         device = Device(kid=kid, name=name, platform=platform, token_hash=hash_token(token))
         db.session.add(device)
         db.session.flush()
-        return _show_token(device, token, 'issued')
+        return _show_setup(device, token, 'issued')
     return render_template('manage/devices.html',
                            devices=Device.query.order_by(Device.active.desc(), Device.name).all(),
                            kids=Kid.query.order_by(Kid.name).all(), now=utc_now())
@@ -336,10 +340,18 @@ def device_token(device_id):
     device = get_or_404(Device, device_id)
     token = Device.new_token()
     device.token_hash = hash_token(token)
-    # A fresh token means a fresh agent setup, so don't flag the new install as tampering.
-    device.install_id, device.last_seq, device.last_hash = None, 0, None
+    device.reset_sync_state()
     device.active = True
-    return _show_token(device, token, 'regenerated')
+    return _show_setup(device, token, 'regenerated')
+
+
+@manage.route('/devices/<int:device_id>/code', methods=['POST'])
+def device_code(device_id):
+    """A pairing code only. The current token keeps working until the code is used."""
+    device = get_or_404(Device, device_id)
+    if not device.active:
+        abort(404)
+    return _show_setup(device, None, 'pairing code issued')
 
 
 # ---------------------------------------------------------------- exclusion rules

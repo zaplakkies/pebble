@@ -26,6 +26,10 @@
     <dt>Install ID</dt><dd class="muted small">{{ device.install_id or '–' }}</dd>
   </dl>
   <div class="actions">
+    {% if device.active %}
+    <form method="post" action="{{ url_for('manage.device_code', device_id=device.id) }}" class="inline">{{ m.csrf() }}
+      <button class="btn secondary">Pairing code</button></form>
+    {% endif %}
     <form method="post" action="{{ url_for('manage.device_token', device_id=device.id) }}" class="inline"
           onsubmit="return confirm('The current token stops working and you will need to enter the new one in the agent. Continue?')">{{ m.csrf() }}
       <button class="btn secondary">New token</button></form>

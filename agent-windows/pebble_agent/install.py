@@ -12,7 +12,7 @@ import psutil
 from pebble_agent import config as cfg
 from pebble_agent.config import Config
 from pebble_agent.store import Store
-from pebble_agent.sync import SyncError, Unauthorized, http_json
+from pebble_agent.sync import SyncError, Unauthorized, http_json, pair
 
 TASK_NAME = 'Pebble Agent'
 EXE_NAME = 'pebble-agent.exe'
@@ -85,14 +85,18 @@ def _stop_agents(exe_path):
     time.sleep(1)
 
 
-def install(server, token, users, start=True):
+def install(server, token, users, start=True, code=None):
     from pebble_agent import winapi
     if not winapi.is_admin():
         raise SystemExit('Run this from an administrator PowerShell or Command Prompt.')
     if not getattr(sys, 'frozen', False):
         raise SystemExit('Install from the packaged pebble-agent.exe (see build.ps1).')
 
-    conf = Config(server=server.rstrip('/'), token=token, track_users=users)
+    server = server.rstrip('/')
+    if code:
+        print(f'Pairing with {server} ...')
+        token = pair(server, code)
+    conf = Config(server=server, token=token, track_users=users)
     home = cfg.home()
     store = Store(cfg.data_dir() / 'queue.db')
     print(f'Checking {conf.base_url} ...')

@@ -1,7 +1,7 @@
 """pebble-agent command line.
 
     pebble-agent run                 track and sync (started by the scheduled task)
-    pebble-agent install --server URL --token TOKEN [--users emma,sam]
+    pebble-agent install --server URL (--code 123456 | --token TOKEN) [--users emma,sam]
     pebble-agent status              show config, queue and today's time
     pebble-agent uninstall [--keep-data]
 """
@@ -146,7 +146,7 @@ def cmd_install(args):
     attach_console()
     from pebble_agent.install import install
     users = [u.strip() for u in (args.users or '').split(',') if u.strip()]
-    install(args.server, args.token, users, start=not args.no_start)
+    install(args.server, args.token, users, start=not args.no_start, code=args.code)
 
 
 def cmd_uninstall(args):
@@ -164,7 +164,9 @@ def main(argv=None):
     p.set_defaults(func=cmd_run)
     p = sub.add_parser('install', help='install for all users (administrator)')
     p.add_argument('--server', required=True, help='e.g. http://192.168.3.10')
-    p.add_argument('--token', required=True, help='device token from the management page')
+    how = p.add_mutually_exclusive_group(required=True)
+    how.add_argument('--code', help='6-digit pairing code from the management page')
+    how.add_argument('--token', help='device token from the management page')
     p.add_argument('--users', help='comma-separated Windows accounts to track (default: all)')
     p.add_argument('--no-start', action='store_true')
     p.set_defaults(func=cmd_install)

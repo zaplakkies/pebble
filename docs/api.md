@@ -19,6 +19,30 @@ one previously seen for this token (agent reinstalled, or the token was copied),
 the request is accepted normally, but the server raises an alert and expects
 `seq` to restart at 1.
 
+## POST /pair
+
+Swaps a one-time pairing code for a device token, so the long token doesn't have to
+be typed on the device. No `Authorization` header.
+
+```json
+{"code": "482913"}
+```
+
+Non-digits are ignored, so `"482 913"` works too. The management page shows a
+code when a device is added or gets a new token, or on request ("Pairing code").
+A code works once, for 15 minutes, and only for an active device.
+
+Success (`200`) issues a **new** token; the device's previous token stops
+working, and the next sync starts a fresh chain (`seq` 1) without alerts:
+
+```json
+{"token": "...", "device": "Emma PC", "kid": "Emma"}
+```
+
+An unknown, used or expired code gets `404`. Every miss counts against all
+live codes; after 10 misses a code is cancelled and a `pairing_code_cancelled`
+alert is raised.
+
 ## POST /sync
 
 The agent calls this endpoint to upload data and to heartbeat. Call it every

@@ -7,7 +7,7 @@ split every `max_session_s` so the server sees ongoing use promptly.
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 
 from pebble_agent import titles
 
@@ -19,7 +19,7 @@ ALIVE_EVERY_S = 30
 
 
 def iso(ts):
-    return datetime.fromtimestamp(ts).astimezone().isoformat(timespec='seconds')
+    return datetime.fromtimestamp(ts, timezone.utc).astimezone().isoformat(timespec='seconds')
 
 
 @dataclass

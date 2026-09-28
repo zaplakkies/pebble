@@ -3,17 +3,22 @@
 <p class="crumbs"><a href="{{ url_for('manage.devices') }}">Devices</a> / {{ device.name }}</p>
 <h1 class="page-title">Set up {{ device.name }}</h1>
 <section class="card">
-  <p>Enter these in the Pebble agent on <b>{{ device.name }}</b> ({{ device.platform }}, for {{ device.kid.name }}).</p>
+  <p>Setting up <b>{{ device.name }}</b> ({{ device.platform }}, for {{ device.kid.name }}).</p>
   <dl class="setup">
+    <dt>Pairing code</dt><dd><code class="copy pair-code">{{ code }}</code>
+      <span class="muted">works once, until {{ expires.strftime('%H:%M') }}</span></dd>
     <dt>Server</dt><dd><code class="copy">{{ server_url }}</code></dd>
-    <dt>Device token</dt><dd><code class="copy token">{{ token }}</code></dd>
+    {% if token %}<dt>Device token</dt><dd><code class="copy token">{{ token }}</code></dd>{% endif %}
   </dl>
   {% if device.platform == 'windows' %}
-  <p>Get the agent from <a href="{{ url_for('main.downloads') }}">{{ server_url }}/downloads</a>, then in an
-    <b>administrator</b> PowerShell on the PC run:<br>
-    <code class="copy">.\pebble-agent.exe install --server {{ server_url }} --token {{ token }}</code></p>
+  <p>On the PC, get <code>pebble-agent.exe</code> from <b>{{ server_url }}/downloads</b>, then in an
+    <b>administrator</b> PowerShell in the download folder run:<br>
+    <code class="copy">.\pebble-agent.exe install --server {{ server_url }} --code {{ code|replace(' ', '') }}</code></p>
   {% endif %}
+  <p class="muted">Using the pairing code gives the device a new token{% if token %}, so the token above stops working{% else %} and the current one stops working{% endif %}.</p>
+  {% if token %}
   <p class="flash flash-error">This token is shown only once. If you lose it, open the device and choose "New token".</p>
+  {% endif %}
   <a class="btn" href="{{ url_for('manage.device_edit', device_id=device.id) }}">Done</a>
 </section>
 {% endblock %}

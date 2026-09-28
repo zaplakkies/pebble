@@ -82,6 +82,68 @@ def test_new_token_invalidates_old_and_resets_sync_state(post, device_token, cli
     assert r.status_code == 401
 
 
+def pair_code(response):
+    return response.get_data(as_text=True).split('class="copy pair-code">')[1].split('<')[0]
+
+
+def test_pairing_code_swaps_for_a_fresh_token(post, kid, client):
+    r = post('/devices', {'kid_id': kid.id, 'name': 'PC', 'platform': 'windows'})
+    shown_token = r.get_data(as_text=True).split('class="copy token">')[1].split('<')[0]
+    code = pair_code(r)
+    assert f'--code {code.replace(" ", "")}' in r.get_data(as_text=True)
+
+    r = client.post('/api/v1/pair', json={'code': code})   # "123 456" with the space is fine
+    assert r.status_code == 200
+    assert r.json['device'] == 'PC' and r.json['kid'] == 'Emma'
+    token = r.json['token']
+    assert client.get('/api/v1/status',
+                      headers={'Authorization': f'Bearer {token}'}).status_code == 200
+    assert client.get('/api/v1/status',
+                      headers={'Authorization': f'Bearer {shown_token}'}).status_code == 401
+    assert last_audit().new == {'token': 'paired'}
+    # One use only.
+    assert client.post('/api/v1/pair', json={'code': code}).status_code == 404
+
+
+def test_pairing_code_for_running_device_keeps_token_until_used(post, device_token, client):
+    r = post('/devices/1/code')
+    code = pair_code(r)
+    assert 'class="copy token"' not in r.get_data(as_text=True)
+    auth = {'Authorization': f'Bearer {device_token}'}
+    assert client.get('/api/v1/status', headers=auth).status_code == 200
+    assert client.post('/api/v1/pair', json={'code': code}).status_code == 200
+    assert client.get('/api/v1/status', headers=auth).status_code == 401
+
+
+def test_pairing_code_expires(post, device_token, client):
+    code = pair_code(post('/devices/1/code'))
+    device = Device.query.one()
+    device.pair_expires = utc_now() - timedelta(seconds=1)
+    db.session.commit()
+    assert client.post('/api/v1/pair', json={'code': code}).status_code == 404
+    assert device.pair_code_hash is None
+
+
+def test_pairing_code_not_usable_on_revoked_device(post, device_token, client):
+    code = pair_code(post('/devices/1/code'))
+    post('/devices/1/active', {'active': '0'})
+    assert client.post('/api/v1/pair', json={'code': code}).status_code == 404
+
+
+def test_guessing_cancels_live_pairing_codes(post, device_token, client):
+    code = pair_code(post('/devices/1/code')).replace(' ', '')
+    wrong = f'{(int(code) + 1) % 10**6:06d}'
+    for _ in range(10):
+        assert client.post('/api/v1/pair', json={'code': wrong}).status_code == 404
+    assert client.post('/api/v1/pair', json={'code': code}).status_code == 404
+    assert [a.kind for a in Alert.query.all()] == ['pairing_code_cancelled']
+
+
+def test_pair_rejects_junk(client, device_token):
+    for body in (None, [], {}, {'code': 'abc'}, {'code': 12}):
+        assert client.post('/api/v1/pair', json=body).status_code == 404
+
+
 def test_revoke_device(post, device_token, client):
     post('/devices/1/active', {'active': '0'})
     r = client.get('/api/v1/status', headers={'Authorization': f'Bearer {device_token}'})

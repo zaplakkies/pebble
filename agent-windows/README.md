@@ -7,20 +7,24 @@ Nothing is blocked: the agent only records.
 
 ## Installing on a kid's PC
 
-1. On the management page, add the device (platform Windows) and copy the token.
-2. Download `pebble-agent.exe` from `http://<server>/downloads`.
+1. On the management page (from your own device), add the device (platform Windows)
+   and note the 6-digit pairing code. It works once, for 15 minutes; an existing
+   device gets a new one with "Pairing code" on its page.
+2. On the PC, download `pebble-agent.exe` from `http://<server>/downloads`.
 3. In an **administrator** PowerShell in the download folder:
 
    ```powershell
-   .\pebble-agent.exe install --server http://192.168.3.10 --token <TOKEN> --users emma
+   .\pebble-agent.exe install --server http://192.168.3.10 --code 482913 --users emma
    ```
+
+   `--token <TOKEN>` works instead of `--code` (the token is also shown once).
 
    `--users` limits tracking to those Windows accounts (comma-separated). Leave
    it out to track everyone who logs on, including parents.
 4. Give the kids **standard** Windows accounts. An administrator can remove the agent.
 
 The installer:
-- checks the token with the server
+- swaps the pairing code for a device token, and checks the token with the server
 - copies the exe to `C:\Program Files\Pebble`
 - writes `C:\ProgramData\Pebble\config.json` (users can read but not change it)
 - registers the scheduled task **Pebble Agent**, which starts the agent at every

@@ -179,6 +179,7 @@ dl.setup, dl.facts { display: grid; grid-template-columns: max-content 1fr; gap:
 dl.setup dt, dl.facts dt { color: var(--muted); }
 dl.setup dd, dl.facts dd { margin: 0; overflow-wrap: anywhere; }
 code.token { font-size: 1.05rem; padding: 6px 10px; display: inline-block; user-select: all; }
+code.pair-code { font-size: 1.6rem; letter-spacing: 0.12em; padding: 6px 12px; display: inline-block; user-select: all; }
 code.copy { user-select: all; }
 
 .pager { display: flex; gap: 16px; justify-content: center; margin-top: 14px; }

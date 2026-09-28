@@ -15,7 +15,9 @@ BATCH = 500
 
 
 class SyncError(Exception):
-    pass
+    def __init__(self, message, status=None):
+        super().__init__(message)
+        self.status = status
 
 
 class Unauthorized(SyncError):
@@ -33,9 +35,23 @@ def http_json(method, url, token, install_id, payload=None, timeout=15):
     except urllib.error.HTTPError as e:
         if e.code == 401:
             raise Unauthorized('server does not recognise this device token')
-        raise SyncError(f'server returned HTTP {e.code}')
+        raise SyncError(f'server returned HTTP {e.code}', status=e.code)
     except (urllib.error.URLError, OSError, ValueError) as e:
         raise SyncError(f'cannot reach server: {getattr(e, "reason", e)}')
+
+
+def pair(base_url, code, request=http_json):
+    """Swap a one-time pairing code from the management page for this device's token."""
+    code = ''.join(ch for ch in code if ch.isdigit())
+    if len(code) != 6:
+        raise SystemExit('The pairing code has 6 digits.')
+    try:
+        return request('POST', f'{base_url}/api/v1/pair', '', '', {'code': code})['token']
+    except SyncError as e:
+        if e.status == 404:
+            raise SystemExit('The server does not recognise that pairing code. Codes work once '
+                             'and for 15 minutes; get a new one from the device page.')
+        raise SystemExit(f'Could not reach the server: {e}')
 
 
 class Syncer:

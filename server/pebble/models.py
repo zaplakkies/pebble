@@ -1,6 +1,7 @@
 import fnmatch
 import hashlib
 import secrets
+from datetime import timedelta
 
 from pebble import db
 from pebble.timeutil import utc_now
@@ -8,6 +9,12 @@ from pebble.timeutil import utc_now
 
 def hash_token(token):
     return hashlib.sha256(token.encode()).hexdigest()
+
+
+# A pairing code is a short one-time code typed on the device instead of the long token.
+PAIR_CODE_TTL = timedelta(minutes=15)
+# Wrong codes tried (by anyone) while a code is live before that code is cancelled.
+PAIR_MAX_FAILURES = 10
 
 
 class Kid(db.Model):
@@ -43,12 +50,35 @@ class Device(db.Model):
     last_seq = db.Column(db.Integer, nullable=False, default=0)
     last_hash = db.Column(db.String(64), nullable=True)
 
+    # Pairing (see PAIR_CODE_TTL)
+    pair_code_hash = db.Column(db.String(64), unique=True, nullable=True)
+    pair_expires = db.Column(db.DateTime, nullable=True)
+    pair_failures = db.Column(db.Integer, nullable=False, default=0, server_default='0')
+
     sessions = db.relationship('Session', backref='device', lazy=True)
     events = db.relationship('DeviceEvent', backref='device', lazy=True)
 
     @staticmethod
     def new_token():
         return secrets.token_urlsafe(32)
+
+    def new_pair_code(self):
+        """Issue a 6-digit one-time pairing code, replacing any earlier one."""
+        while True:
+            code = f'{secrets.randbelow(10**6):06d}'
+            if not Device.query.filter_by(pair_code_hash=hash_token(code)).first():
+                break
+        self.pair_code_hash = hash_token(code)
+        self.pair_expires = utc_now() + PAIR_CODE_TTL
+        self.pair_failures = 0
+        return code
+
+    def clear_pair_code(self):
+        self.pair_code_hash, self.pair_expires, self.pair_failures = None, None, 0
+
+    def reset_sync_state(self):
+        """A fresh token means a fresh agent setup, so don't flag the new install as tampering."""
+        self.install_id, self.last_seq, self.last_hash = None, 0, None
 
     def __repr__(self):
         return f"Device('{self.name}', '{self.platform}')"

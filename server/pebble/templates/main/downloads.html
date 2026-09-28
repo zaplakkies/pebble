@@ -18,10 +18,11 @@
 <section class="card">
   <h3>Installing on Windows</h3>
   <ol class="steps">
-    <li>On the management page, add the device and copy its token.</li>
+    <li>On the management page (on your own device), add the PC and note its 6-digit pairing code.
+      The code works once and for 15 minutes.</li>
     <li>Download <code>pebble-agent.exe</code> on the PC.</li>
     <li>Open <b>PowerShell as administrator</b> in the download folder and run:<br>
-      <code class="copy">.\pebble-agent.exe install --server {{ server_url }} --token YOUR-TOKEN</code></li>
+      <code class="copy">.\pebble-agent.exe install --server {{ server_url }} --code 123456</code></li>
     <li>Make sure the kids use <b>standard</b> (not administrator) Windows accounts.</li>
   </ol>
 </section>
