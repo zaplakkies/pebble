@@ -27,5 +27,8 @@ class Config:
     # Fraction of the daily limit at which status turns from "under" to "near".
     NEAR_LIMIT_RATIO = float(os.environ.get('NEAR_LIMIT_RATIO') or 0.9)
 
+    # Agent installers offered on /downloads (upload with deploy/publish-download.sh).
+    DOWNLOADS_DIR = os.environ.get('DOWNLOADS_DIR') or str(BASE_DIR / 'instance' / 'downloads')
+
     # Largest accepted request body (an agent returning after days offline sends a lot).
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024

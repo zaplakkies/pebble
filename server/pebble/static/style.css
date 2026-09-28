@@ -189,3 +189,5 @@ code.copy { user-select: all; }
   dl.setup dd, dl.facts dd { margin-bottom: 8px; }
 }
 .footer-note { margin-top: 24px; text-align: center; }
+ol.steps { padding-left: 1.3em; margin: 0; }
+ol.steps li { margin-bottom: 8px; }

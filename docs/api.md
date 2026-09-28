@@ -66,7 +66,13 @@ Request:
 - `url`, `document` and `title` may be `null`.
 - Event `type` values: `agent_start`, `agent_stop`, `os_boot`, `os_shutdown`,
   `os_sleep`, `os_resume`, `clock_jump`, `permission_lost`, `permission_restored`,
-  `backfill` (Android: records recovered from OS history).
+  `backfill` (Android: records recovered from OS history), `agent_gap`.
+- `agent_start` details may include `"new_session": true` when the user logged
+  off/on or the OS restarted since the agent last ran. The server then doesn't
+  expect a preceding `agent_stop` (Windows ends the agent at logoff without warning).
+- `agent_gap` details: `{"from": ts, "to": ts, "slept_s": n}`. The agent wasn't
+  running between `from` and `to` although the device was on (minus `slept_s`
+  asleep). The server raises an `agent_not_running` alert.
 
 Response `200`:
 ```json

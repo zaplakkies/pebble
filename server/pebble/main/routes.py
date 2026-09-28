@@ -1,6 +1,7 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
+from pathlib import Path
 
-from flask import Blueprint, abort, render_template, request
+from flask import Blueprint, abort, current_app, render_template, request, send_from_directory
 
 from pebble import db
 from pebble.models import AuditLog, Kid
@@ -36,3 +37,22 @@ def kid(kid_id):
                            week_max=week_max, today=today,
                            prev_day=day - timedelta(days=1),
                            next_day=day + timedelta(days=1) if day < today else None)
+
+
+@main.route('/downloads')
+def downloads():
+    folder = Path(current_app.config['DOWNLOADS_DIR'])
+    files = []
+    if folder.is_dir():
+        for f in sorted(folder.iterdir(), key=lambda p: p.stat().st_mtime, reverse=True):
+            if f.is_file() and not f.name.startswith('.'):
+                st = f.stat()
+                files.append({'name': f.name, 'size_mb': st.st_size / 1_048_576,
+                              'modified': datetime.fromtimestamp(st.st_mtime)})
+    return render_template('main/downloads.html', files=files, today=local_today(),
+                           server_url=request.host_url.rstrip('/'))
+
+
+@main.route('/downloads/<path:name>')
+def download_file(name):
+    return send_from_directory(current_app.config['DOWNLOADS_DIR'], name, as_attachment=True)

@@ -113,3 +113,26 @@ def test_dashboard_pages_render(client, sync, records, kid):
     page = client.get(f'/kid/{kid.id}').data
     assert b'Essay.docx' in page and b'Microsoft Word' in page
     assert client.get(f'/kid/{kid.id}?day=nonsense').status_code == 400
+
+
+def test_agent_start_in_new_session_is_not_unclean(sync, records):
+    sync([records(kind='event', at=ts(60), type='agent_start'),
+          records(kind='event', at=ts(30), type='agent_start', details={'new_session': True})])
+    assert alert_kinds() == []
+
+
+def test_agent_gap_raises_alert(sync, records):
+    sync([records(kind='event', at=ts(1), type='agent_gap',
+                  details={'from': ts(90), 'to': ts(30), 'slept_s': 600})])
+    alert = Alert.query.one()
+    assert alert.kind == 'agent_not_running'
+    assert 'about 50 min' in alert.detail
+
+
+def test_downloads(client, app, tmp_path):
+    app.config['DOWNLOADS_DIR'] = str(tmp_path)
+    assert b'Nothing here yet' in client.get('/downloads').data
+    (tmp_path / 'pebble-agent.exe').write_bytes(b'MZ')
+    assert b'pebble-agent.exe' in client.get('/downloads').data
+    assert client.get('/downloads/pebble-agent.exe').data == b'MZ'
+    assert client.get('/downloads/../run.py').status_code == 404

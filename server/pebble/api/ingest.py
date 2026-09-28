@@ -12,7 +12,7 @@ from pebble.timeutil import parse_timestamp, to_local, utc_now
 from pebble import db
 
 EVENT_TYPES = {'agent_start', 'agent_stop', 'os_boot', 'os_shutdown', 'os_sleep', 'os_resume',
-               'clock_jump', 'permission_lost', 'permission_restored', 'backfill'}
+               'clock_jump', 'permission_lost', 'permission_restored', 'backfill', 'agent_gap'}
 LIFECYCLE_TYPES = ('agent_start', 'agent_stop', 'os_shutdown')
 MAX_SESSION = timedelta(hours=24)
 
@@ -167,7 +167,9 @@ def _ingest_event(device, rec):
         raise RecordError(f'unknown event type {event_type!r}')
     details = rec.get('details') if isinstance(rec.get('details'), dict) else None
 
-    if event_type == 'agent_start':
+    # new_session: the user logged off/on or the OS restarted since the agent last ran, so a
+    # missing agent_stop is expected (Windows ends the agent without warning at logoff).
+    if event_type == 'agent_start' and not (details or {}).get('new_session'):
         previous = (DeviceEvent.query
                     .filter(DeviceEvent.device_id == device.id, DeviceEvent.at <= at,
                             DeviceEvent.type.in_(LIFECYCLE_TYPES))
@@ -176,6 +178,8 @@ def _ingest_event(device, rec):
             raise_alert(device, 'unclean_stop',
                         f'Agent stopped without shutting down cleanly after {_fmt_local(previous.at)} '
                         '(killed, crashed or power loss).')
+    elif event_type == 'agent_gap':
+        _agent_gap_alert(device, details or {})
     elif event_type == 'permission_lost':
         what = (details or {}).get('permission', 'a required permission')
         raise_alert(device, 'permission_lost', f'{what} was turned off at {_fmt_local(at)}.')
@@ -186,3 +190,14 @@ def _ingest_event(device, rec):
 
     db.session.add(DeviceEvent(device_id=device.id, record_id=rec['id'][:64], seq=rec['seq'],
                                at=at, type=event_type, details=details))
+
+
+def _agent_gap_alert(device, details):
+    try:
+        start, end = parse_timestamp(details['from']), parse_timestamp(details['to'])
+    except (KeyError, TypeError, ValueError):
+        raise RecordError('agent_gap needs from and to timestamps')
+    minutes = int((end - start).total_seconds() // 60) - int(details.get('slept_s', 0)) // 60
+    raise_alert(device, 'agent_not_running',
+                f'Agent was not running for about {minutes} min between {_fmt_local(start)} '
+                f'and {_fmt_local(end)} while the device was switched on.')
