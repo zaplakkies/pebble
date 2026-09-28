@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A smooth pebble on the adaptive-icon canvas (108dp, safe zone 66dp). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="@color/accent"
+        android:pathData="M30,60 C28,44 42,34 56,35 C72,36 82,46 79,60 C76,73 63,77 52,76 C40,75 31,71 30,60 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.35"
+        android:pathData="M42,48 C46,43 53,41 59,42 C55,44 49,47 45,52 Z" />
+</vector>

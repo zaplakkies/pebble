@@ -1,5 +1,19 @@
 {% extends "base.html" %}
-{% block title %}Downloads · Pebble{% endblock %}
+{% block title %}Downloads · Pebble<section class="card">
+  <h3>Installing on Android</h3>
+  <ol class="steps">
+    <li>On the management page (on your own device), add the phone or tablet (platform Android)
+      and note its 6-digit pairing code.</li>
+    <li>On the device, open <b>{{ server_url }}/downloads</b> in Chrome and download
+      <code>pebble-agent.apk</code>. Allow Chrome to install unknown apps when asked.
+      On a Family Link device, a parent may need to allow this first.</li>
+    <li>Open Pebble, enter the server <code>{{ server_url }}</code> and the pairing code.</li>
+    <li>Follow the checklist in the app: allow <b>Usage access</b> and running in the
+      <b>background</b> (and <b>autostart</b> on Xiaomi, Oppo, Vivo or Huawei).</li>
+    <li>Optional: add the Pebble widget to the home screen.</li>
+  </ol>
+</section>
+{% endblock %}
 {% block content %}
 <h1 class="page-title">Downloads</h1>
 <section class="card">
@@ -24,6 +38,20 @@
     <li>Open <b>PowerShell as administrator</b> in the download folder and run:<br>
       <code class="copy">.\pebble-agent.exe install --server {{ server_url }} --code 123456</code></li>
     <li>Make sure the kids use <b>standard</b> (not administrator) Windows accounts.</li>
+  </ol>
+</section>
+<section class="card">
+  <h3>Installing on Android</h3>
+  <ol class="steps">
+    <li>On the management page (on your own device), add the phone or tablet (platform Android)
+      and note its 6-digit pairing code.</li>
+    <li>On the device, open <b>{{ server_url }}/downloads</b> in Chrome and download
+      <code>pebble-agent.apk</code>. Allow Chrome to install unknown apps when asked.
+      On a Family Link device, a parent may need to allow this first.</li>
+    <li>Open Pebble, enter the server <code>{{ server_url }}</code> and the pairing code.</li>
+    <li>Follow the checklist in the app: allow <b>Usage access</b> and running in the
+      <b>background</b> (and <b>autostart</b> on Xiaomi, Oppo, Vivo or Huawei).</li>
+    <li>Optional: add the Pebble widget to the home screen.</li>
   </ol>
 </section>
 {% endblock %}

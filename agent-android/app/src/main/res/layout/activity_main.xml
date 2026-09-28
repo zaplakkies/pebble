@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- Today -->
+        <LinearLayout
+            android:id="@+id/status_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/today_title"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <TextView
+                android:id="@+id/today_used"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="56sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/today_limit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <TextView
+                android:id="@+id/today_note"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:alpha="0.7" />
+
+            <TextView
+                android:id="@+id/device_line"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:alpha="0.7" />
+
+            <TextView
+                android:id="@+id/sync_line"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:alpha="0.7" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp">
+
+                <Button
+                    android:id="@+id/sync_button"
+                    style="?android:attr/buttonBarButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sync_now" />
+
+                <Button
+                    android:id="@+id/repair_button"
+                    style="?android:attr/buttonBarButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/pair_again" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Permissions checklist -->
+        <LinearLayout
+            android:id="@+id/checklist_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="@string/checklist_title"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textStyle="bold" />
+
+            <LinearLayout style="@style/ChecklistRow">
+                <TextView android:id="@+id/usage_state" style="@style/ChecklistState" />
+                <TextView style="@style/ChecklistLabel" android:text="@string/usage_access" />
+                <Button android:id="@+id/usage_button" style="@style/ChecklistButton" android:text="@string/allow" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/ChecklistRow">
+                <TextView android:id="@+id/battery_state" style="@style/ChecklistState" />
+                <TextView style="@style/ChecklistLabel" android:text="@string/battery" />
+                <Button android:id="@+id/battery_button" style="@style/ChecklistButton" android:text="@string/allow" />
+            </LinearLayout>
+
+            <LinearLayout android:id="@+id/autostart_row" style="@style/ChecklistRow">
+                <TextView style="@style/ChecklistState" android:text="\?" />
+                <TextView style="@style/ChecklistLabel" android:text="@string/autostart" />
+                <Button android:id="@+id/autostart_button" style="@style/ChecklistButton" android:text="@string/open" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Pairing -->
+        <LinearLayout
+            android:id="@+id/setup_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/setup_title"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/setup_help" />
+
+            <EditText
+                android:id="@+id/server_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:autofillHints=""
+                android:hint="@string/server_hint"
+                android:inputType="textUri" />
+
+            <EditText
+                android:id="@+id/code_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:autofillHints=""
+                android:hint="@string/code_hint"
+                android:inputType="number"
+                android:maxLength="7"
+                android:textSize="24sp" />
+
+            <Button
+                android:id="@+id/pair_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/pair" />
+
+            <TextView
+                android:id="@+id/pair_message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

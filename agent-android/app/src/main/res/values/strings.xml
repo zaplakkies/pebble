@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Pebble</string>
+    <string name="setup_title">Set up Pebble</string>
+    <string name="setup_help">On the management page, add this device and note its 6-digit pairing code. The code works once, for 15 minutes.</string>
+    <string name="server_hint">Server, e.g. 192.168.3.10</string>
+    <string name="code_hint">Pairing code</string>
+    <string name="pair">Pair</string>
+    <string name="pairing">Pairing…</string>
+    <string name="today_title">Today</string>
+    <string name="today_left">%1$s left of %2$s</string>
+    <string name="today_over">%1$s over the %2$s limit</string>
+    <string name="today_no_limit">No limit today</string>
+    <string name="today_estimate">Includes time not yet sent to the server.</string>
+    <string name="not_set_up">Not set up</string>
+    <string name="checklist_title">Finish setting up</string>
+    <string name="usage_access">Usage access (to see which apps are used)</string>
+    <string name="battery">Run in the background (battery)</string>
+    <string name="autostart">Allow autostart (this phone stops background apps)</string>
+    <string name="allow">Allow</string>
+    <string name="open">Open</string>
+    <string name="sync_now">Sync now</string>
+    <string name="pair_again">Pair again</string>
+    <string name="syncing">Syncing…</string>
+    <string name="sync_never">Not synced yet</string>
+    <string name="sync_last">Last sync %1$s</string>
+    <string name="sync_error">Sync problem: %1$s</string>
+    <string name="widget_description">Today\'s screen time</string>
+</resources>

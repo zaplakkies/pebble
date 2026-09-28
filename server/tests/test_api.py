@@ -136,3 +136,5 @@ def test_downloads(client, app, tmp_path):
     assert b'pebble-agent.exe' in client.get('/downloads').data
     assert client.get('/downloads/pebble-agent.exe').data == b'MZ'
     assert client.get('/downloads/../run.py').status_code == 404
+    (tmp_path / 'pebble-agent.apk').write_bytes(b'PK')
+    assert client.get('/downloads/pebble-agent.apk').mimetype == 'application/vnd.android.package-archive'

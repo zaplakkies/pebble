@@ -39,6 +39,9 @@ def kid(kid_id):
                            next_day=day + timedelta(days=1) if day < today else None)
 
 
+APK_TYPE = 'application/vnd.android.package-archive'
+
+
 @main.route('/downloads')
 def downloads():
     folder = Path(current_app.config['DOWNLOADS_DIR'])
@@ -55,4 +58,7 @@ def downloads():
 
 @main.route('/downloads/<path:name>')
 def download_file(name):
-    return send_from_directory(current_app.config['DOWNLOADS_DIR'], name, as_attachment=True)
+    # Android only offers to install an APK served with its own media type.
+    mimetype = APK_TYPE if name.lower().endswith('.apk') else None
+    return send_from_directory(current_app.config['DOWNLOADS_DIR'], name, as_attachment=True,
+                               mimetype=mimetype)
