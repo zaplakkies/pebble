@@ -85,10 +85,12 @@ def summarize_day(kid, day):
                 .filter(Device.kid_id == kid.id, Session.start < day_end, Session.end > day_start)
                 .order_by(Session.start).all())
     rules = active_rules(kid)
-    adjustments = Adjustment.query.filter_by(kid_id=kid.id, day=day).all()
+    # Session exclusions apply on every day the session touches, minute adjustments on their day.
     excluded_sessions = {a.session_id: a.reason or 'Excluded by parent'
-                         for a in adjustments if a.session_id}
-    adjust_s = sum((a.minutes or 0) * 60 for a in adjustments if not a.session_id)
+                         for a in Adjustment.query.filter(
+                             Adjustment.session_id.in_([s.id for s in sessions]))}
+    adjust_s = sum((a.minutes or 0) * 60 for a in Adjustment.query.filter_by(
+        kid_id=kid.id, day=day, session_id=None))
 
     views, counted, excluded_s = [], [], 0
     by_app, by_domain, documents = defaultdict(int), defaultdict(int), defaultdict(int)

@@ -105,3 +105,11 @@ def test_no_limit(kid):
     add_session(make_device(kid), utc(8), utc(20))
     s = summarize_day(kid, DAY)
     assert s.limit_s is None and s.status == 'under'
+
+
+def test_session_exclusion_applies_across_midnight(kid):
+    s = add_session(make_device(kid), utc(21, 30, day=27), utc(22, 30, day=27))
+    db.session.add(Adjustment(kid_id=kid.id, day=date(2026, 9, 27), session_id=s.id))
+    db.session.commit()
+    assert summarize_day(kid, date(2026, 9, 27)).used_s == 0
+    assert summarize_day(kid, DAY).used_s == 0
