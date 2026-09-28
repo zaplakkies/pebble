@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block head %}<meta http-equiv="refresh" content="60">{% endblock %}
+{% block content %}
+{% if not cards %}
+  <section class="card empty">
+    <h2>No kids yet</h2>
+    <p>Add one on the server with <code>flask kid add NAME --weekday 120 --weekend 180</code>.</p>
+  </section>
+{% endif %}
+<div class="grid">
+  {% for kid, s in cards %}
+  <a class="card kid-card status-{{ s.status }}" href="{{ url_for('main.kid', kid_id=kid.id) }}">
+    <div class="kid-head">
+      <h2>{{ kid.name }}</h2>
+      <span class="badge badge-{{ s.status }}">
+        {% if s.status == 'over' %}Limit reached{% elif s.status == 'near' %}Almost there{% else %}Under limit{% endif %}
+      </span>
+    </div>
+    <div class="big">{{ s.used_s|duration }}</div>
+    {% if s.limit_s is not none %}
+      <div class="meter"><span style="width: {{ s.percent }}%"></span></div>
+      <p class="muted">
+        {% if s.used_s > s.limit_s %}{{ (s.used_s - s.limit_s)|duration }} over the {{ s.limit_s|duration }} limit
+        {% elif s.status == 'over' %}All {{ s.limit_s|duration }} used
+        {% else %}{{ s.remaining_s|duration }} left of {{ s.limit_s|duration }}{% endif %}
+      </p>
+    {% else %}
+      <p class="muted">No limit today</p>
+    {% endif %}
+    {% if s.by_app %}
+    <ul class="mini">
+      {% for name, secs in s.by_app[:3] %}<li><span>{{ name }}</span><span>{{ secs|duration }}</span></li>{% endfor %}
+    </ul>
+    {% endif %}
+    <ul class="devices">
+      {% for d in kid.devices if d.active %}
+        <li><span class="platform">{{ d.platform }}</span> {{ d.name }} <span class="muted">· {{ d.last_seen|ago }}</span></li>
+      {% endfor %}
+    </ul>
+  </a>
+  {% endfor %}
+</div>
+{% endblock %}

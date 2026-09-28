@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}{{ kid.name }} · Pebble{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>{{ kid.name }}</h1>
+  <nav class="daynav">
+    <a href="{{ url_for('main.kid', kid_id=kid.id, day=prev_day.isoformat()) }}">&larr;</a>
+    <span>{% if summary.day == today %}Today{% else %}{{ summary.day.strftime('%a %d %b') }}{% endif %}</span>
+    {% if next_day %}<a href="{{ url_for('main.kid', kid_id=kid.id, day=next_day.isoformat()) }}">&rarr;</a>
+    {% else %}<span class="disabled">&rarr;</span>{% endif %}
+  </nav>
+</div>
+
+<section class="stats">
+  <div class="card stat status-{{ summary.status }}">
+    <span class="label">Used</span><span class="value">{{ summary.used_s|duration }}</span>
+    {% if summary.limit_s is not none %}<div class="meter"><span style="width: {{ summary.percent }}%"></span></div>{% endif %}
+  </div>
+  <div class="card stat"><span class="label">Limit</span>
+    <span class="value">{% if summary.limit_s is not none %}{{ summary.limit_s|duration }}{% else %}None{% endif %}</span></div>
+  <div class="card stat"><span class="label">{% if summary.status == 'over' %}Over by{% else %}Remaining{% endif %}</span>
+    <span class="value">{% if summary.limit_s is none %}–{% elif summary.status == 'over' %}{{ (summary.used_s - summary.limit_s)|duration }}{% else %}{{ summary.remaining_s|duration }}{% endif %}</span></div>
+  <div class="card stat"><span class="label">Not counted</span>
+    <span class="value">{{ summary.excluded_s|duration }}</span>
+    {% if summary.adjust_s %}<span class="muted">Adjusted {{ '+' if summary.adjust_s > 0 else '−' }}{{ summary.adjust_s|abs|duration }}</span>{% endif %}
+  </div>
+</section>
+
+<section class="card">
+  <h3>Last 7 days</h3>
+  <div class="week">
+    {% for d in week %}
+    <a class="day {% if d.day == summary.day %}current{% endif %}" href="{{ url_for('main.kid', kid_id=kid.id, day=d.day.isoformat()) }}" title="{{ d.used_s|duration }}">
+      <div class="col">
+        {% if d.limit_s %}<div class="limit" style="bottom: {{ (100 * d.limit_s / week_max)|round }}%"></div>{% endif %}
+        <div class="bar status-{{ d.status }}" style="height: {{ (100 * d.used_s / week_max)|round }}%"></div>
+      </div>
+      <span class="muted">{{ d.day.strftime('%a') }}</span>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+<div class="two-col">
+  {% for heading, rows in [('Apps', summary.by_app), ('Websites', summary.by_domain), ('Documents', summary.documents)] if rows %}
+  <section class="card">
+    <h3>{{ heading }}</h3>
+    {% set top = rows[0][1] %}
+    <ul class="bars">
+      {% for name, secs in rows[:15] %}
+      <li><div class="row"><span class="name">{{ name }}</span><span>{{ secs|duration }}</span></div>
+        <div class="meter thin"><span style="width: {{ (100 * secs / top)|round }}%"></span></div></li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endfor %}
+</div>
+
+<section class="card">
+  <h3>Timeline</h3>
+  {% if summary.sessions %}
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Time</th><th>Device</th><th>App</th><th>What</th><th class="num">Duration</th></tr></thead>
+    <tbody>
+    {% for v in summary.sessions|reverse %}
+      {% set s = v.session %}
+      <tr class="{% if v.excluded_reason %}excluded{% endif %}">
+        <td class="nowrap">{{ s.start|localtime }}–{{ s.end|localtime }}</td>
+        <td>{{ s.device.name }}</td>
+        <td>{{ s.display_name }}</td>
+        <td class="what">
+          {% if s.document %}<span class="tag">doc</span> {{ s.document }}
+          {% elif s.url %}<a href="{{ s.url }}" rel="noreferrer" target="_blank">{{ s.title or s.domain }}</a>
+          {% else %}{{ s.title or '' }}{% endif %}
+          {% if v.excluded_reason %}<span class="tag">not counted: {{ v.excluded_reason }}</span>{% endif %}
+        </td>
+        <td class="num">{{ v.seconds|duration }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <p class="muted">Nothing recorded for this day.</p>
+  {% endif %}
+</section>
+{% endblock %}
