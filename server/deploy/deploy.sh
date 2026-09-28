@@ -59,7 +59,7 @@ if ufw status | grep -q "Status: active"; then
 fi
 
 for i in \$(seq 10); do
-    curl -fsS -o /dev/null http://127.0.0.1:8000/ && break
+    curl -fs -o /dev/null http://127.0.0.1:8000/ && break
     sleep 1
 done
 echo "pebble service: \$(systemctl is-active pebble), revision \$(cat REVISION)"
