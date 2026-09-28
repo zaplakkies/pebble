@@ -69,10 +69,10 @@ sudo -u pebble venv/bin/flask db upgrade
 sudo cp deploy/pebble.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now pebble
-sudo ufw allow from 192.168.0.0/16 to any port 8000 proto tcp     # LAN only; match your subnet
+sudo ufw allow from 192.168.0.0/16 to any port 80 proto tcp     # LAN only; match your subnet
 ```
 
-The dashboard is then at `http://<server-ip>:8000/`. Run management commands as:
+The dashboard is then at `http://<server-ip>/`. Run management commands as:
 `cd /opt/pebble/server && sudo -u pebble venv/bin/flask kid list`.
 
 Make sure the server's timezone is right (`timedatectl`), or set `TIMEZONE` in `.env`.

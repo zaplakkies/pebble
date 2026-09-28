@@ -55,14 +55,14 @@ systemctl daemon-reload
 systemctl enable -q pebble
 systemctl restart pebble
 if ufw status | grep -q "Status: active"; then
-    ufw allow from $SUBNET to any port 8000 proto tcp >/dev/null
+    ufw allow from $SUBNET to any port 80 proto tcp >/dev/null
 fi
 
 for i in \$(seq 10); do
-    curl -fs -o /dev/null http://127.0.0.1:8000/ && break
+    curl -fs -o /dev/null http://127.0.0.1/ && break
     sleep 1
 done
 echo "pebble service: \$(systemctl is-active pebble), revision \$(cat REVISION)"
-curl -fsS -o /dev/null -w "dashboard HTTP %{http_code}\n" http://127.0.0.1:8000/
+curl -fsS -o /dev/null -w "dashboard HTTP %{http_code}\n" http://127.0.0.1/
 EOF
-echo "Done: http://${HOST#*@}:8000/"
+echo "Done: http://${HOST#*@}/"
