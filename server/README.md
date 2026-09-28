@@ -43,6 +43,18 @@ These stand in for the hidden management page until phase 3.
 
 ## Deploying on the Ubuntu server
 
+From this repo, deploy the committed code with:
+
+```bash
+server/deploy/deploy.sh                 # defaults to george@192.168.3.10
+```
+
+The script uploads `HEAD`, keeps the server's `venv`, database and `.env`, runs
+migrations, and restarts the service. The first run also creates the `pebble`
+user, a `.env` with a random `SECRET_KEY` and `MANAGE_PATH`, the systemd
+service and the firewall rule. The manual steps below show what it does.
+
+
 ```bash
 sudo apt install python3-venv
 sudo useradd --system --create-home --home-dir /opt/pebble pebble
