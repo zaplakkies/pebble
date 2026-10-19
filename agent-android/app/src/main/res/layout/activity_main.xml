@@ -99,7 +99,16 @@
                 <Button android:id="@+id/usage_button" style="@style/ChecklistButton" android:text="@string/allow" />
             </LinearLayout>
 
-            <LinearLayout style="@style/ChecklistRow">
+            <TextView
+                android:id="@+id/usage_hint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="28dp"
+                android:alpha="0.7"
+                android:textIsSelectable="true"
+                android:visibility="gone" />
+
+            <LinearLayout android:id="@+id/battery_row" style="@style/ChecklistRow">
                 <TextView android:id="@+id/battery_state" style="@style/ChecklistState" />
                 <TextView style="@style/ChecklistLabel" android:text="@string/battery" />
                 <Button android:id="@+id/battery_button" style="@style/ChecklistButton" android:text="@string/allow" />

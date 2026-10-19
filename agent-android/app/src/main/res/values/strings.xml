@@ -15,6 +15,7 @@
     <string name="not_set_up">Not set up</string>
     <string name="checklist_title">Finish setting up</string>
     <string name="usage_access">Usage access (to see which apps are used)</string>
+    <string name="usage_access_adb">This device has no Usage access page. From a computer with adb: adb shell appops set %1$s GET_USAGE_STATS allow</string>
     <string name="battery">Run in the background (battery)</string>
     <string name="autostart">Allow autostart (this phone stops background apps)</string>
     <string name="allow">Allow</string>

@@ -1,8 +1,10 @@
 package home.pebble.agent
 
 import android.app.Activity
+import android.app.UiModeManager
 import android.content.ComponentName
 import android.content.Intent
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -35,6 +37,7 @@ class MainActivity : Activity() {
         }
         findViewById<View>(R.id.autostart_row).visibility =
             if (needsAutostart()) View.VISIBLE else View.GONE
+        findViewById<View>(R.id.battery_row).visibility = if (isTv()) View.GONE else View.VISIBLE
     }
 
     override fun onResume() {
@@ -58,8 +61,11 @@ class MainActivity : Activity() {
         if (prefs.server != null) findViewById<EditText>(R.id.server_input).setText(prefs.server)
 
         val usageOk = Agent.hasUsageAccess(this)
-        val batteryOk = getSystemService(PowerManager::class.java).isIgnoringBatteryOptimizations(packageName)
+        // A TV box is always plugged in, and Doze and App Standby only apply on battery.
+        val batteryOk = isTv() ||
+            getSystemService(PowerManager::class.java).isIgnoringBatteryOptimizations(packageName)
         check(R.id.usage_state, R.id.usage_button, usageOk)
+        if (usageOk) findViewById<View>(R.id.usage_hint).visibility = View.GONE
         check(R.id.battery_state, R.id.battery_button, batteryOk)
         findViewById<View>(R.id.checklist_section).visibility =
             if (paired && (!usageOk || !batteryOk || needsAutostart())) View.VISIBLE else View.GONE
@@ -117,13 +123,22 @@ class MainActivity : Activity() {
 
     private fun openUsageAccess() {
         val withPackage = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS, Uri.parse("package:$packageName"))
-        if (!tryStart(withPackage)) tryStart(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+        if (!tryStart(withPackage) && !tryStart(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))) {
+            // Many TV boxes leave this settings page out; adb can still grant it.
+            findViewById<TextView>(R.id.usage_hint).apply {
+                text = getString(R.string.usage_access_adb, packageName)
+                visibility = View.VISIBLE
+            }
+        }
     }
 
     private fun askBatteryExemption() {
         val ask = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:$packageName"))
         if (!tryStart(ask)) tryStart(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
     }
+
+    private fun isTv() = getSystemService(UiModeManager::class.java).currentModeType ==
+        Configuration.UI_MODE_TYPE_TELEVISION
 
     /** Xiaomi, Oppo, Vivo and Huawei stop background apps unless "autostart" is allowed. */
     private fun needsAutostart() =

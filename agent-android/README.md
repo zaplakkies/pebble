@@ -29,6 +29,39 @@ some special-access settings. If the install or Usage access is blocked, allow i
 for that device from the parent's Family Link app, then continue. (Not yet tried
 on a real Family Link device; update this with the exact steps once done.)
 
+## Installing on an Android TV box
+
+The same APK runs on Android TV (it appears on the TV home screen). A TV is shared, so
+on the management page add it under a kid called **Family** (create that kid once), so
+its time doesn't land on one child.
+
+TV boxes usually have no Chrome and often no Usage access page, so install with adb
+from a computer on the same network:
+
+1. On the box: Settings → Device Preferences → About, press **Build** 7 times. Then in
+   Developer options turn on **USB debugging** / **Network debugging**. Some operator
+   boxes hide these; then use a USB stick and a file manager app to install, and you'll
+   still need adb for step 3.
+2. `adb connect <box-ip>:5555` (accept the prompt on the TV), then
+   `adb install -r dist/pebble-agent.apk`.
+3. `adb shell appops set home.pebble.agent GET_USAGE_STATS allow` (Usage access).
+4. Open Pebble on the TV, enter the server and the pairing code with the remote.
+5. Turn debugging off again, so nobody else can use it.
+
+There's no battery step on a TV: it is always plugged in, so Android doesn't hold back
+background work.
+
+What counts on a TV:
+
+- Time stops when the box goes to sleep, and should stop when the screensaver starts
+  (Android pauses the app; not yet confirmed on a real box). Set
+  Settings → Device Preferences → Screen saver → **Put device to sleep** to a short time,
+  so a box left on doesn't keep counting.
+- If the TV set is switched off but the box isn't, and an app keeps playing, that time
+  counts until the box sleeps. Boxes that follow the TV's power over HDMI-CEC avoid this.
+- The TV home screen counts like any app. If that inflates the figure, add an exclusion
+  rule for the launcher's package.
+
 ## How it works
 
 | What | How |
