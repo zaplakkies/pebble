@@ -1,11 +1,12 @@
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-from flask import Blueprint, abort, current_app, render_template, request, send_from_directory
+from flask import (Blueprint, abort, current_app, jsonify, render_template, request,
+                   send_from_directory)
 
 from pebble import db
 from pebble.models import AuditLog, Kid
-from pebble.timeutil import local_today
+from pebble.timeutil import local_now, local_today, utc_now
 from pebble.usage import history, summarize_day, summarize_today
 
 main = Blueprint('main', __name__)
@@ -18,6 +19,21 @@ def index():
     last_change = AuditLog.query.order_by(AuditLog.at.desc()).first()
     return render_template('main/index.html', cards=cards, today=local_today(),
                            last_change=last_change)
+
+
+@main.route('/board.json')
+def board():
+    """The dashboard as JSON, for the e-paper display. Read-only, like the dashboard itself."""
+    now, utc = local_now(), utc_now()
+    kids = []
+    for kid in Kid.query.order_by(Kid.name).all():
+        today = summarize_today(kid)
+        devices = [{'name': d.name, 'platform': d.platform,
+                    'last_seen_s': None if d.last_seen is None
+                    else max(0, int((utc - d.last_seen).total_seconds()))}
+                   for d in sorted(kid.devices, key=lambda d: d.id) if d.active]
+        kids.append({'name': kid.name, **today.as_api_dict(), 'devices': devices})
+    return jsonify(date=now.strftime('%a %d %b'), time=now.strftime('%H:%M'), kids=kids)
 
 
 @main.route('/kid/<int:kid_id>')
