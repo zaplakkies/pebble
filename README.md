@@ -10,6 +10,7 @@ Flask server on the home network. It records and shows usage; it does not block 
 | `server/` | Flask app: dashboard, management page, agent API | [server/README.md](server/README.md) |
 | `agent-windows/` | Python agent packaged as an `.exe` with a tray icon | [agent-windows/README.md](agent-windows/README.md) |
 | `agent-android/` | Kotlin Android app | [agent-android/README.md](agent-android/README.md) |
+| `display-epaper/` | ESP32 e-paper board showing today's times and last syncs | [display-epaper/README.md](display-epaper/README.md) |
 | `docs/` | Agent ↔ server contract | [docs/api.md](docs/api.md) |
 
 Design decisions and the overall plan are in [PLAN.md](PLAN.md).
